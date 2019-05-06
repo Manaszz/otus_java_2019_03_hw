@@ -47,7 +47,7 @@ public class DIYarrayList<T> implements List <T> {
     public void add(int index, T element) {
     int s;
         if(elementData.length == (s = size ))
-            elementData = Arrays.copyOf(elementData ,size+1);
+            elementData = Arrays.copyOf(elementData ,size+10); //size*2
 
         System.arraycopy(elementData, index,
                 elementData, index + 1,
@@ -63,9 +63,9 @@ public class DIYarrayList<T> implements List <T> {
         return (T) elementData[index];
     }
 
-    static <T> T elementAt(Object[] es, int index) {
-        return (T) es[index];
-    }
+//    static <T> T elementAt(Object[] es, int index) {
+//        return (T) es[index];
+//    }
 
     @Override
     public T set(int index, T element) {
@@ -146,7 +146,7 @@ public class DIYarrayList<T> implements List <T> {
                 if (i >= es.length)
                     throw new ConcurrentModificationException();
                 for (; i < size ; i++)
-                    action.accept(elementAt(es, i));
+                    action.accept(DIYarrayList.this.get(i));
                 // update once at end to reduce heap write traffic
                 cursor = i;
                 lastRet = i - 1;
