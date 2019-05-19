@@ -8,6 +8,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 
@@ -19,42 +20,32 @@ public class TestRunner {
     private static void run(Class<?> testClass) throws ClassNotFoundException, InvocationTargetException, IllegalAccessException {
 
         Class<?> clazz = testClass; // Person.class;
-//        clazz.getAnnotations();
         Method[] declMethods = clazz.getDeclaredMethods();
-/**
- * Вариант1: распределения методов в мапу  */
-        Map<String,ArrayList> methodsMap = getMethods(declMethods);
-/**
-* Вариант2: распределения методов возвращает лист с заданной аннотацией. Красиво, но для каждого бегать цикл по методам
-        ArrayList<Method> methodsBeforeEach = getMethods(declMethods,BeforeEach.class);
-*/
-/**
- * Вариант3: распределения методов в листы
-        getMethods(declMethods, methodsBeforeEach, methodsAfterEach, methodsTest, methodsBeforeAll, methodsAfterAll);
- */
-/**
-* Вариант4: Вынести листы в поля класса и распределять в них без передачи параметрами метода. */
+        TestContext ctx = new TestContext(clazz.getDeclaredMethods());
+
+    /**Вариант1: распределения методов в мапу  */
+//        Map<String,List<Method>> methodsMap = getMethods(declMethods);
 
         try {
-            for (Method method : (ArrayList<Method>) methodsMap.get("BeforeAll")) {
+            for (Method method : ctx.getMethsBeforeAll()) {
                 method.invoke(Class.forName(testClass.getName()));
             }
 
             System.out.println(".....................................");
 
-            for (Method method : (ArrayList<Method>) methodsMap.get("Test")) {
+            for (Method method :ctx.getMethsTest()) {
 
                 Object testObject = Class.forName(testClass.getName()).newInstance();
                 try {
-                    runMethods(testObject, methodsMap.get("BeforeEach"));
-                    ReflectionHelper.callMethod(testObject, method.getName());
+                    runMethods(testObject, ctx.getMethsBeforeEach());
+                    method.invoke(testObject, null);
 
                 } catch (Exception e) {
                     System.out.println("Exception before Each");
                     e.printStackTrace();
                 } finally {
                     try {
-                        runMethods(testObject, methodsMap.get("AfterEach"));
+                        runMethods(testObject, ctx.getMethsAfterEach());
                     } catch (Exception e) {
                         System.out.println("Exception after Each:");
                         e.printStackTrace();
@@ -64,28 +55,26 @@ public class TestRunner {
                 System.out.println(".....................................");
             }
 
-
         } catch (Exception e) {
             System.out.println("Exception in BeforeAll:");
             e.printStackTrace();
         } finally {
 
-            for (Method method : (ArrayList<Method>) methodsMap.get("AfterAll")) {
+            for (Method method : ctx.getMethsAfterAll()) {
                 method.invoke(Class.forName(testClass.getName()));
             }
         }
 
     }
 
-
-    private static Map<String,ArrayList>  getMethods(Method[] declMethods) {
+    private static Map<String,List<Method>>  getMethods(Method[] declMethods) {
 
         ArrayList<Method> methodsBeforeEach = new ArrayList<>();
         ArrayList<Method> methodsAfterEach = new ArrayList<>();
         ArrayList<Method> methodsTest = new ArrayList<>();
         ArrayList<Method> methodsBeforeAll = new ArrayList<>();
         ArrayList<Method> methodsAfterAll = new ArrayList<>();
-        Map<String,ArrayList> methodsMap = new HashMap<>();
+        Map<String,List<Method>> methodsMap = new HashMap<>();
 
         for (Method method:declMethods ){
             if(method.isAnnotationPresent(BeforeEach.class)) {methodsBeforeEach.add(method); continue;}
@@ -103,38 +92,40 @@ public class TestRunner {
         return  methodsMap;
     }
 
-    private static void getMethods(Method[] declMethods, ArrayList<Method> methodsBeforeEach, ArrayList<Method> methodsAfterEach, ArrayList<Method> methodsTest, ArrayList<Method> methodsBeforeAll, ArrayList<Method> methodsAfterAll) {
-        for (Method method:declMethods ){
-            if(method.isAnnotationPresent(BeforeEach.class)) {methodsBeforeEach.add(method); continue;}
-            if(method.isAnnotationPresent(AfterEach.class)) {methodsAfterEach.add(method); continue;}
-            if(method.isAnnotationPresent(Test.class)) {methodsTest.add(method); continue;}
-            if(method.isAnnotationPresent(BeforeAll.class)) {methodsBeforeAll.add(method); continue;}
-            if(method.isAnnotationPresent(AfterAll.class)) methodsAfterAll.add(method);
-
-        }
-    }
-
-    private static ArrayList<Method>  getMethods(Method[] declMethods,Class Annotation ) {
-
-        ArrayList<Method> methodsList = new ArrayList<>();
-
-        for (Method method:declMethods ){
-            if(method.isAnnotationPresent(Annotation)) {methodsList.add(method); continue;}
-        }
-
-        return  methodsList;
-
-    }
-
     private static void runMethods(Class<?> testClass, ArrayList<Method> methods ) throws InstantiationException, IllegalAccessException, ClassNotFoundException {
         for (Method method : methods) {
             ReflectionHelper.callMethod(Class.forName(testClass.getName()).newInstance(), method.getName());
         }
     }
 
-    private static void runMethods(Object testClass, ArrayList<Method> methods ) throws InvocationTargetException, IllegalAccessException {
+    private static void runMethods(Object testClass, List<Method> methods ) throws InvocationTargetException, IllegalAccessException {
         for (Method method : methods) {
                 method.invoke(testClass, null);
             }
+    }
+
+    private static class TestContext {
+        private ArrayList<Method> methodsBeforeEach = new ArrayList<>();
+        private ArrayList<Method> methodsAfterEach = new ArrayList<>();
+        private ArrayList<Method> methodsTest = new ArrayList<>();
+        private ArrayList<Method> methodsBeforeAll = new ArrayList<>();
+        private ArrayList<Method> methodsAfterAll = new ArrayList<>();
+
+        public TestContext(Method[] declMethods )
+        {
+            for (Method method:declMethods ){
+                if(method.isAnnotationPresent(BeforeEach.class)) {methodsBeforeEach.add(method); continue;}
+                if(method.isAnnotationPresent(AfterEach.class)) {methodsAfterEach.add(method); continue;}
+                if(method.isAnnotationPresent(Test.class)) {methodsTest.add(method); continue;}
+                if(method.isAnnotationPresent(BeforeAll.class)) {methodsBeforeAll.add(method); continue;}
+                if(method.isAnnotationPresent(AfterAll.class)) methodsAfterAll.add(method);
+
+            }
+        }
+        List<Method> getMethsBeforeEach(){ return methodsBeforeEach;}
+        List<Method> getMethsAfterEach(){ return methodsAfterEach;}
+        List<Method> getMethsBeforeAll(){ return methodsBeforeAll;}
+        List<Method> getMethsAfterAll(){ return methodsAfterAll;}
+        List<Method> getMethsTest(){ return methodsTest;}
     }
 }
