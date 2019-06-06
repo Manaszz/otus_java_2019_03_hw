@@ -1,7 +1,8 @@
 package ru.otus.kchu.ATMemul;
 
 public class CashPack{
-    final private int value;
+    final private NoteValues value;
+    final private int numValue;
      int qtty;
 
     @Override
@@ -12,11 +13,13 @@ public class CashPack{
                 '}';
     }
 
-    public CashPack(int val, int qty){
-        value =val;
+    public CashPack(NoteValues val, int qty){
+        value=val;
+        numValue =val.getVal();
         qtty =qty;
     }
-    public CashPack(int val){
+    public CashPack(NoteValues val){
+        numValue = val.getVal();
         value =val;
         qtty = 0;
     }
@@ -26,6 +29,9 @@ public class CashPack{
     }
 
     public int getValue() {
+        return value.getVal();
+    }
+    public NoteValues getNValue() {
         return value;
     }
 
