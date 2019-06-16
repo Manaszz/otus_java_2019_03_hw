@@ -1,19 +1,23 @@
 package ru.otus.kchu.ATMemul;
 
+import ru.otus.kchu.ATMemul.momento.Memento;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
+
 public class MoneyUnit {
 
-    private MoneyBox box100= new MoneyBox(100);
-    private MoneyBox box50= new MoneyBox(50);
-    private MoneyBox box20= new MoneyBox(20);
-    private MoneyBox box10= new MoneyBox(10);
-    private MoneyBox box5= new MoneyBox(5);
-    private MoneyBox box2= new MoneyBox(2);
-    private MoneyBox box1= new MoneyBox(1);
+    private MoneyBox box100= new MoneyBox(NoteValues.v100);
+    private MoneyBox box50= new MoneyBox(NoteValues.v50);
+    private MoneyBox box20= new MoneyBox(NoteValues.v20);
+    private MoneyBox box10= new MoneyBox(NoteValues.v10);
+    private MoneyBox box5= new MoneyBox(NoteValues.v5);
+    private MoneyBox box2= new MoneyBox(NoteValues.v2);
+    private MoneyBox box1= new MoneyBox(NoteValues.v1);
     private List <MoneyBox> boxList = Arrays.asList(box100,box50, box20, box10, box5,  box2,box1);
     private Map <Integer,MoneyBox> moneyBoxMap = new HashMap<>();
+    List<Memento> history = new ArrayList<>();
 
     public MoneyUnit(){
         getMoneyBoxMap();
@@ -23,22 +27,51 @@ public class MoneyUnit {
         boxList.forEach(box -> this.moneyBoxMap.put(box.getValue(),box));
     }
 
+    public Memento saveState() {
+        return new Memento( boxList);
+    }
+
+    public void saveStateToDefault() {
+        saveStateToDefault(new Memento( boxList));
+    }
+
+    public void saveStateToDefault(Memento memento) {
+        if(history.size() == 0)
+            history.add(memento);
+        else
+            history.set(0,memento);
+    }
+    public void restoreDefault() {
+        restoreState(history.get(0));
+
+    }
+    public void getDefault() {
+        System.out.println((history.get(0)));
+
+    }
+
+    public void restoreState(Memento memento) {
+        this.boxList = memento.getState();
+    }
+
     @Deprecated
     boolean addAsset(int val , int qty){
         moneyBoxMap.get(val).insert(qty);
         return true;
     }
 
-    boolean  addAsset(CashPack note) {
+    public boolean  addAsset(CashPack note) {
         for (var b : boxList) {
             if(b.addPack(note)) return true;
         }
         return false;
+
     }
     public List<CashPack> withdraw(int amount) throws Exception {
         int cnt;
         int val ;
         List<CashPack> cash =  new ArrayList<>();
+
         for ( MoneyBox box : getNotEmtyBoxes()) {
             val = box.getValue();
             cnt = amount / val;
@@ -46,27 +79,30 @@ public class MoneyUnit {
             amount = amount- (cnt*val);
             cash.add(box.wdrawCash(cnt));
         }
-        if(amount>0) throw  new  Exception("Can get combination of notes. Change amount");
+        if(amount>0) {
+
+            throw  new  Exception("Can't get combination of notes. Change amount");
+        };
 
         return  cash;
     }
 
-    public CashPack withdraw(int value, int qtty) throws Exception {
+    public CashPack withdraw(NoteValues value, int qtty) throws Exception {
         CashPack cash;
                  switch (value){
-                    case 100: cash =wdraw100(qtty);
+                    case v100: cash =wdraw100(qtty);
                         break;
-                    case 50: cash =wdraw50(qtty);
+                    case v50: cash =wdraw50(qtty);
                         break;
-                    case 20: cash =wdraw20(qtty);
+                    case v20: cash =wdraw20(qtty);
                         break;
-                    case 10: cash =wdraw10(qtty);
+                    case v10: cash =wdraw10(qtty);
                         break;
-                    case 5: cash =wdraw5(qtty);
+                    case v5: cash =wdraw5(qtty);
                         break;
-                    case 2: cash =wdraw2(qtty);
+                    case v2: cash =wdraw2(qtty);
                         break;
-                    case 1: cash =wdraw1(qtty);
+                    case v1: cash =wdraw1(qtty);
                         break;
                         default: throw new Exception ("Value not found");
                  };
@@ -99,8 +135,8 @@ public class MoneyUnit {
 
     public  Double sumAmount()
     {
-        int result = boxList.stream().mapToInt(MoneyBox::getAmount).sum();
-        return  (double) result;
+        double result = boxList.stream().mapToDouble(MoneyBox::getAmount).sum();
+        return result;
     }
 
     public List<CashPack> getPacks(){
@@ -118,14 +154,14 @@ public class MoneyUnit {
     }
     @Override
     public String toString() {
-        return "MoneyUnit{" +
-                "box100=" + box100 +
-                ", box50=" + box50 +
-                ", box20=" + box20 +
-                ", box10=" + box10 +
-                ", box5=" + box5 +
-                ", box2=" + box2 +
-                ", box1=" + box1 +
+        return "MoneyUnit{" +boxList.toString()+
+//                "box100=" + box100 +
+//                ", box50=" + box50 +
+//                ", box20=" + box20 +
+//                ", box10=" + box10 +
+//                ", box5=" + box5 +
+//                ", box2=" + box2 +
+//                ", box1=" + box1 +
                 '}';
     }
 
