@@ -1,26 +1,47 @@
 package ru.otus.kchu.jsonWriter;
 
-import javax.json.Json;
-import javax.json.JsonArrayBuilder;
-import javax.json.JsonObject;
-import javax.json.JsonObjectBuilder;
+import javax.json.*;
 import java.lang.reflect.Field;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class MyJsonWriter {
 
     public static String toJson(Object obj) throws IllegalAccessException {
-        final Class  clazz = obj.getClass();
-         List<Field> fields = Arrays.asList(clazz.getDeclaredFields());
+        JsonObject jsonObject = null;
+        JsonObjectBuilder builder =null;
 
-        JsonObjectBuilder builder = fieldsToBuilder(fields,obj);
-        JsonObject jsonObject = builder.build();
+        if(obj == null) return null;
+        final Class  clazz = obj.getClass();
+
+        if(obj instanceof Number)
+            return  obj.toString();
+        if(obj instanceof Character ||obj instanceof String)
+            return  Json.createValue(String.valueOf(obj)).toString();
+        if(obj  instanceof Collection)
+            return Json.createArrayBuilder((Collection)obj).build().toString();
+
+        if(clazz.isArray() ){
+            Class arrayComponentType = clazz.getComponentType();
+            JsonArrayBuilder arrayBuilder = buildArray(arrayComponentType.getSimpleName(),obj);
+            return arrayBuilder.build().toString();
+        }
+
+
+        List<Field> fields = Arrays.asList(clazz.getDeclaredFields());
+
+        try {
+
+            builder = fieldsToBuilder(fields, obj);
+            jsonObject = builder.build();
+
+        } catch (Exception e) {
+            System.out.println("Exception!:" + e.getMessage());
+            return null;
+        }
         System.out.println();
         System.out.println("builder:" + jsonObject);
         return jsonObject.toString();
+
     }
 
     private static JsonObjectBuilder fieldsToBuilder( List<Field> fields, Object obj ) throws IllegalAccessException {
@@ -58,8 +79,6 @@ public class MyJsonWriter {
 
     private static JsonArrayBuilder buildArray(String typeSimpleName, Object obj ){
         JsonArrayBuilder arrayBuilder = Json.createArrayBuilder();
-        System.out.println(typeSimpleName);
-
 
         switch (typeSimpleName) {
             case "int":

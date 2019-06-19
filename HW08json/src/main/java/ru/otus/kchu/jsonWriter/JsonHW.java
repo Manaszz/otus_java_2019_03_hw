@@ -8,7 +8,7 @@ import java.util.*;
 public class JsonHW {
     public static void main(String[] args) throws IllegalAccessException, InstantiationException, ClassNotFoundException {
         Gson gson = new Gson();
-//        BagOfPrimitives obj = new BagOfPrimitives(22, "test", 10);
+
         String[] strArr= {"Winter", "Spring", "Summer", "Autumn"};
         int[] intArr= {50,60};
         List <Integer>tmpList = new ArrayList( Arrays.asList(1,2,3));
@@ -25,6 +25,43 @@ public class JsonHW {
         BagOfPrimitives obj2 = gson.fromJson(myJson, BagOfPrimitives.class);
         System.out.println("3.ObjfromJson:"+obj2);
         System.out.println("equals:" + obj.equals(obj2));
+//---------------------------------------------------------------------
+
+        System.out.println(MyJsonWriter.toJson(null));
+        System.out.println(gson.toJson(null));
+
+        System.out.println(MyJsonWriter.toJson((byte)1));
+        System.out.println(gson.toJson((byte)1));
+
+        System.out.println(MyJsonWriter.toJson((short)1f));
+        System.out.println(gson.toJson((short)1f));
+
+        System.out.println(MyJsonWriter.toJson(1));
+        System.out.println(gson.toJson(1));
+
+        System.out.println(MyJsonWriter.toJson(1L));
+        System.out.println(gson.toJson(1L));
+
+        System.out.println(MyJsonWriter.toJson(1f));
+        System.out.println(gson.toJson(1f));
+
+        System.out.println(MyJsonWriter.toJson(1d));
+        System.out.println(gson.toJson(1d));
+
+        System.out.println(MyJsonWriter.toJson("aaa"));
+        System.out.println(gson.toJson("aaa"));
+
+        System.out.println(MyJsonWriter.toJson('a'));
+        System.out.println(gson.toJson('a'));
+
+        System.out.println(MyJsonWriter.toJson(new int[] {1, 2, 3}));;
+        System.out.println(gson.toJson(new int[] {1, 2, 3}));
+
+        System.out.println(MyJsonWriter.toJson(List.of(1, 2 ,3)));
+        System.out.println(gson.toJson(List.of(1, 2 ,3)));
+
+        System.out.println(MyJsonWriter.toJson(Collections.singletonList(1)));
+        System.out.println(gson.toJson(Collections.singletonList(1)));
     }
 
     static class BagOfPrimitives {
