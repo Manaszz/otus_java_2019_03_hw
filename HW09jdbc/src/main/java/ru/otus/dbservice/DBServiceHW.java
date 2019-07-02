@@ -1,12 +1,12 @@
 package ru.otus.dbservice;
 
+import ru.otus.dao.Account;
 import ru.otus.dao.User;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.Optional;
 
 public class DBServiceHW {
     public static void main(String[] args) throws SQLException, IllegalAccessException {
@@ -32,6 +32,24 @@ public class DBServiceHW {
         dbServiceUser.createOrUpdate(new User(2,"User2", 10));
         System.out.println("Load:"+dbServiceUser.load(2,usr1.getClass()));
 
+        //----------------------
+        Account acc1 = new Account(10,"Account10", 30);
+        dbServiceUser.create(acc1);
+        dbServiceUser.create(new Account(11,"Account11", 30));
+
+        //dbServiceUser.getUser(acc1.getId());
+        acc1.setRest(35);
+        dbServiceUser.update(acc1);
+
+        Account acc2 = dbServiceUser.load(acc1.getId(),acc1.getClass());
+        System.out.println("Loaded:" +acc2);
+
+        acc1.setRest(40);
+        dbServiceUser.createOrUpdate(acc1);
+        System.out.println("Load:"+dbServiceUser.load(acc1.getId(),acc1.getClass()));
+
+        dbServiceUser.createOrUpdate(new Account(2,"Account2", 10));
+        System.out.println("Load:"+dbServiceUser.load(2,acc1.getClass()));
 
     }
 

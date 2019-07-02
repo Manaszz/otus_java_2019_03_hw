@@ -1,7 +1,6 @@
 package ru.otus.dbservice;
 
 import ru.otus.dao.Id;
-import ru.otus.dao.User;
 import ru.otus.executor.DbExecutor;
 import ru.otus.executor.DbExecutorImpl;
 
@@ -190,7 +189,7 @@ public class DbServiceJdbc implements DBService {
             return "insert into "+ tableName+"("+ fldNamesStr +") values ("+parmsDummy+")";
         }
         String getSelectQuery(){
-            return "select "+ fldNamesStr +" from "+ tableName+" where id  = ?";
+            return "select "+ fldNamesStr +" from "+ tableName+" where "+idFld+"  = ?";
           }
         String getUpdateQuery(){
             String sql ="update "+tableName+" set ";
