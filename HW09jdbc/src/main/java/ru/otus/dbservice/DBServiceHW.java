@@ -25,6 +25,7 @@ public class DBServiceHW {
         User usr2 = dbServiceUser.load(usr1.getId(),usr1.getClass());
         System.out.println("Loaded:" +usr2);
 
+        System.out.println("****create or update*****");
         usr1.setAge(40);
         dbServiceUser.createOrUpdate(usr1);
         System.out.println("Load:"+dbServiceUser.load(usr1.getId(),usr1.getClass()));

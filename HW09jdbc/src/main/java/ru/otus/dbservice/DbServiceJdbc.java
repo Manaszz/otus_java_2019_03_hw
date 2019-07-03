@@ -13,27 +13,39 @@ import java.util.*;
 public class DbServiceJdbc implements DBService {
 
     private final DataSource dataSource;
+    Map<Class, SqlScripture> classesMetaData;
+
     public DbServiceJdbc(DataSource dataSource)  {
         this.dataSource = dataSource;
+        classesMetaData =new HashMap<>();
     }
 
     @Override
     public <T> void create(T objectData) throws IllegalAccessException {
 
         final Class  clazz = objectData.getClass();
-        Field idFld = checkId(clazz);
-        SqlScripture scriptor = new SqlScripture(clazz);
-        List<String> params =new ArrayList<>();
+        SqlScripture scriptor ;
 
-        for (Field f : clazz.getDeclaredFields()) {
-            f.setAccessible(true);
-            params.add(String.valueOf( f.get(objectData)));
-            f.setAccessible(false);
+        if(classesMetaData.containsKey(clazz))
+            scriptor = classesMetaData.get(clazz);
+        else {
+            System.out.println("------------- New class:"+clazz);
+            scriptor = new SqlScripture(clazz);
+            classesMetaData.put(clazz,scriptor);
         }
+
+        Field idFld = scriptor.getIdFld();
+        List params =new ArrayList<>();
 
         if(idFld == null){
             System.out.println("ID not found"); return;
-        }else System.out.println("ID field:"+idFld.getName() );
+        }
+
+        for (Field f : scriptor.getFldsList()) {
+             f.setAccessible(true);
+            params.add(f.get(objectData));
+            f.setAccessible(false);
+        }
 
         String sql = scriptor.getInsertQuery();
 
@@ -53,15 +65,24 @@ public class DbServiceJdbc implements DBService {
 
         try (Connection connection = dataSource.getConnection()) {
             DbExecutor<T> executor = new DbExecutorImpl<>(connection);
-            SqlScripture scriptor = new SqlScripture(clazz);
+            SqlScripture scriptor ;
+
+            if(classesMetaData.containsKey(clazz))
+                scriptor = classesMetaData.get(clazz);
+            else {
+                System.out.println("------------- New class:"+clazz);
+                scriptor = new SqlScripture(clazz);
+                classesMetaData.put(clazz,scriptor);
+            }
+
             String sql = scriptor.getSelectQuery();
             Optional<T> record = executor.selectRecord(sql, id,
                     resultSet -> {
                         try {
                             if (resultSet.next()) {
                                T newObj = clazz.newInstance();
-                                for (Field field :clazz.getDeclaredFields()){
-                                             setFieldValue(newObj,field.getName(),resultSet.getObject(field.getName()));
+                                for (Field field : scriptor.getFldsList()){
+                                             ReflectionHelper.setFieldValue(newObj,field.getName(),resultSet.getObject(field.getName()));
                                 }
                                 //T resObj =clazz.getDeclaredConstructor().newInstance(resultSet.getLong("id"), resultSet.getString("name"), resultSet.getInt("age"));
                                 return newObj;
@@ -83,21 +104,29 @@ public class DbServiceJdbc implements DBService {
     @Override
     public <T> void update(T objectData) {
         final Class  clazz = objectData.getClass();
-        Field idFld = checkId(clazz);
-        SqlScripture scriptor = new SqlScripture(clazz);
-        List<String> params =new ArrayList<>();
+        SqlScripture scriptor ;
+
+        if(classesMetaData.containsKey(clazz))
+            scriptor = classesMetaData.get(clazz);
+        else {
+            System.out.println("------------- New class:"+clazz);
+            scriptor = new SqlScripture(clazz);
+            classesMetaData.put(clazz,scriptor);
+        }
+        Field idFld = scriptor.getIdFld();
+
+        List params =new ArrayList<>();
         try {
             for (Field f : clazz.getDeclaredFields()) {
                 f.setAccessible(true);
-                params.add(String.valueOf( f.get(objectData)));
+                params.add(f.get(objectData));
                 f.setAccessible(false);
             }
 
             if(idFld == null){
                 System.out.println("ID not found"); return;
             }else {
-                System.out.println("ID field:" + idFld.getName());
-                params.add(String.valueOf( idFld.get(objectData)));
+                params.add(idFld.get(objectData));
             }
         } catch (IllegalAccessException e) {
             e.printStackTrace();
@@ -117,90 +146,27 @@ public class DbServiceJdbc implements DBService {
 
     @Override
     public <T> void createOrUpdate(T objectData) {
-        try (Connection connection = dataSource.getConnection()) {
+        try {
             Class clazz = objectData.getClass();
-            DbExecutor<T> executor = new DbExecutorImpl<>(connection);
-            SqlScripture scriptor = new SqlScripture(clazz);
+            SqlScripture scriptor ;
+
+            if(classesMetaData.containsKey(clazz))
+                scriptor = classesMetaData.get(clazz);
+            else {
+                System.out.println("------------- New class:"+clazz);
+                scriptor = new SqlScripture(clazz);
+                classesMetaData.put(clazz,scriptor);
+            }
             String sql = scriptor.getCountQuery();
 
-            //да, я знаю, очень кривая конструкция и можно было сделать подругому. Сделал костылем исключительно для экономии времени
-            int count = ((DbExecutorImpl<T>) executor).selectCount( sql, (long)checkId(clazz).get(objectData));
-            System.out.println("Count:"+ count);
-            if(count>0) update(objectData); else create(objectData);
+            //убрал костыль с Count. всё намного проще оказалось. Деформация PL/SQL разраба ))
+            if(load( (long)scriptor.getIdFld().get(objectData), clazz) == null)
+                    create(objectData);
+                else update(objectData);
 
         } catch (Exception ex) {
             ex.printStackTrace();
             throw new RuntimeException(ex);
-        }
-    }
-
-    private Field checkId(Class clazz) {
-
-        for (Field field: clazz.getDeclaredFields()){
-            field.setAccessible(true);
-            if(field.isAnnotationPresent(Id.class)) {
-                return  field;
-            }
-            field.setAccessible(false);
-        }
-        return  null;
-    }
-
-    private  void setFieldValue(Object object, String name, Object value) {
-        Field field = null;
-        boolean isAccessible = true;
-        try {
-            field = object.getClass().getDeclaredField(name); //getField() for public fields
-            isAccessible = field.canAccess(object);
-            field.setAccessible(true);
-            field.set(object, value);
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            e.printStackTrace();
-        } finally {
-            if (field != null && !isAccessible) {
-                field.setAccessible(false);
-            }
-        }
-    }
-
-      class SqlScripture {
-        private String tableName;
-        private String fldNamesStr ="";
-        private List<String> fldNamesList = new ArrayList<>();
-        private String parmsDummy="";
-        private String idFld;
-
-        public  <T> SqlScripture(Class  clazz) {
-
-            for (Field f : clazz.getDeclaredFields()) {
-                f.setAccessible(true);
-                this.fldNamesStr += ("," + f.getName());
-                this.parmsDummy+=",?";
-                fldNamesList.add(f.getName());
-                f.setAccessible(false);
-            }
-            fldNamesStr = fldNamesStr.substring(1);
-            parmsDummy = parmsDummy.substring(1);
-            tableName = clazz.getSimpleName();
-            idFld =checkId(clazz).getName();
-        }
-
-         String getInsertQuery(){
-            return "insert into "+ tableName+"("+ fldNamesStr +") values ("+parmsDummy+")";
-        }
-        String getSelectQuery(){
-            return "select "+ fldNamesStr +" from "+ tableName+" where "+idFld+"  = ?";
-          }
-        String getUpdateQuery(){
-            String sql ="update "+tableName+" set ";
-            for (String f : fldNamesList) {
-                sql = sql.concat(f + "= ?,");
-               }
-            sql =sql.substring(0,sql.length()-1)+" where "+idFld+" = ?" ;
-            return sql;
-          }
-        String getCountQuery(){
-            return "select count(*) from "+ tableName +"  where "+idFld+"  = ?";
         }
     }
 
