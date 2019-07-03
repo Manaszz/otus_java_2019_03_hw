@@ -157,7 +157,6 @@ public class DbServiceJdbc implements DBService {
                 scriptor = new SqlScripture(clazz);
                 classesMetaData.put(clazz,scriptor);
             }
-            String sql = scriptor.getCountQuery();
 
             //убрал костыль с Count. всё намного проще оказалось. Деформация PL/SQL разраба ))
             if(load( (long)scriptor.getIdFld().get(objectData), clazz) == null)
