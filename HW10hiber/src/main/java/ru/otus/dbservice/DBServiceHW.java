@@ -24,7 +24,7 @@ public class DBServiceHW {
                 .addClass(Account.class)
                 .addClass(AddressDataSet.class)
                 .addClass(Phone.class)
-                .build();
+                .buildFactory();
 
 //        DBService dbServiceUser = new DbServiceHiber(cfgPath,User.class,Account.class ,AddressDataSet.class , Phone.class);
         DBService dbServiceUser = new DbServiceHiber(sessionFactory);

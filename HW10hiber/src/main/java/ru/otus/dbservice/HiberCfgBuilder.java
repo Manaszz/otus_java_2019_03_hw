@@ -42,7 +42,7 @@ public class HiberCfgBuilder {
         this.configPath = configPath;
     }
 
-    public SessionFactory  build(){
+    public SessionFactory buildFactory(){
         Configuration configuration = new Configuration()
                 .configure(configPath);
 
