@@ -8,8 +8,6 @@ import org.hibernate.boot.registry.StandardServiceRegistry;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.cfg.Configuration;
 
-import ru.otus.dao.*;
-
 import javax.persistence.Id;
 import java.lang.reflect.Field;
 
@@ -50,6 +48,10 @@ public class DbServiceHiber implements DBService {
         Metadata metadata = metaSource.getMetadataBuilder().build();
 
         sessionFactory = metadata.getSessionFactoryBuilder().build();
+    }
+
+    public DbServiceHiber(SessionFactory sessionFactory) {
+        this.sessionFactory =sessionFactory;
     }
 
     @Override

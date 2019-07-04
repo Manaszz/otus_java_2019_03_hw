@@ -1,5 +1,6 @@
 package ru.otus.dbservice;
 
+import org.hibernate.SessionFactory;
 import ru.otus.dao.Account;
 import ru.otus.dao.AddressDataSet;
 import ru.otus.dao.Phone;
@@ -18,14 +19,15 @@ public class DBServiceHW {
 //        createTable(dataSource);
 
 //        DBService dbServiceUser = new DbServiceJdbc(dataSource);
-        HiberCfgBuilder  hiberServConfig = new HiberCfgBuilder("hibernate.cfg.xml")
+        SessionFactory sessionFactory =  new HiberCfgBuilder("hibernate.cfg.xml")
                 .addClass(User.class)
                 .addClass(Account.class)
                 .addClass(AddressDataSet.class)
-                .addClass(Phone.class);
+                .addClass(Phone.class)
+                .build();
 
 //        DBService dbServiceUser = new DbServiceHiber(cfgPath,User.class,Account.class ,AddressDataSet.class , Phone.class);
-        DBService dbServiceUser = new DbServiceHiber(hiberServConfig);
+        DBService dbServiceUser = new DbServiceHiber(sessionFactory);
 
         User usr1 = new User(10,"User10", 30);
 
