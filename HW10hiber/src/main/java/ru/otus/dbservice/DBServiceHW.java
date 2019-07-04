@@ -9,7 +9,6 @@ import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -19,10 +18,16 @@ public class DBServiceHW {
 //        createTable(dataSource);
 
 //        DBService dbServiceUser = new DbServiceJdbc(dataSource);
-        DBService dbServiceUser = new DbServiceHiber();
+        HiberCfgBuilder  hiberServConfig = new HiberCfgBuilder("hibernate.cfg.xml")
+                .addClass(User.class)
+                .addClass(Account.class)
+                .addClass(AddressDataSet.class)
+                .addClass(Phone.class);
+
+//        DBService dbServiceUser = new DbServiceHiber(cfgPath,User.class,Account.class ,AddressDataSet.class , Phone.class);
+        DBService dbServiceUser = new DbServiceHiber(hiberServConfig);
 
         User usr1 = new User(10,"User10", 30);
-
 
         List<Phone> listPhone = Arrays.asList(new Phone("+7926888888", usr1),new Phone("+8123456789", usr1));
         AddressDataSet addr = new AddressDataSet("qwe str.",usr1);

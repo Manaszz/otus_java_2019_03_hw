@@ -9,36 +9,45 @@ import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.cfg.Configuration;
 
 import ru.otus.dao.*;
-import ru.otus.executor.DbExecutor;
-import ru.otus.executor.DbExecutorImpl;
 
 import javax.persistence.Id;
-import javax.sql.DataSource;
 import java.lang.reflect.Field;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
 
 public class DbServiceHiber implements DBService {
 
     private final SessionFactory sessionFactory;
 
-    public DbServiceHiber() {
+    public DbServiceHiber(String cfgPath, Class ... classes) {
         Configuration configuration = new Configuration()
-                .configure("hibernate.cfg.xml");
+                .configure(cfgPath);
 
         StandardServiceRegistry serviceRegistry = new StandardServiceRegistryBuilder()
                 .applySettings(configuration.getProperties()).build();
 
-        Metadata metadata = new MetadataSources(serviceRegistry)
-                .addAnnotatedClass(User.class)
-                .addAnnotatedClass(Account.class)
-                .addAnnotatedClass(AddressDataSet.class)
-                .addAnnotatedClass(Phone.class)
-                .getMetadataBuilder()
-                .build();
+        MetadataSources metaSource= new MetadataSources(serviceRegistry);
+                for(Class c:classes){
+                    metaSource.addAnnotatedClass(c);
+                }
+
+        Metadata metadata = metaSource.getMetadataBuilder().build();
+
+        sessionFactory = metadata.getSessionFactoryBuilder().build();
+    }
+
+    public DbServiceHiber(HiberCfgBuilder hiberServConfig) {
+
+        Configuration configuration = new Configuration()
+                .configure(hiberServConfig.getConfigPath());
+
+        StandardServiceRegistry serviceRegistry = new StandardServiceRegistryBuilder()
+                .applySettings(configuration.getProperties()).build();
+
+        MetadataSources metaSource= new MetadataSources(serviceRegistry);
+        for(Class c:hiberServConfig.getAnnotatedClasses()){
+            metaSource.addAnnotatedClass(c);
+        }
+
+        Metadata metadata = metaSource.getMetadataBuilder().build();
 
         sessionFactory = metadata.getSessionFactoryBuilder().build();
     }
@@ -86,13 +95,40 @@ public class DbServiceHiber implements DBService {
 
     @Override
     public <T> void createOrUpdate(T objectData) {
+        Class clazz = objectData.getClass();
+        Field idFld =checkId(clazz);
+        T loaded = null;
         try (Session session = sessionFactory.openSession()) {
-            session.beginTransaction();
 
-            session.saveOrUpdate(objectData);
-            session.getTransaction().commit();
+            loaded = (T) session.get(clazz, (long) idFld.get(objectData));
+            } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+
+        try (Session session2 = sessionFactory.openSession()) {
+        session2.beginTransaction();
+            if(loaded == null) {
+                session2.save(objectData);
+            }
+            else   {
+                session2.update(objectData);
+            }
+
+            session2.getTransaction().commit();
             System.out.println("-----------------create/updated user:"+objectData);
         }
 
+    }
+
+    private Field checkId(Class clazz) {
+
+        for (Field field: clazz.getDeclaredFields()){
+            field.setAccessible(true);
+            if(field.isAnnotationPresent(Id.class)) {
+                return  field;
+            }
+            field.setAccessible(false);
+        }
+        return  null;
     }
 }

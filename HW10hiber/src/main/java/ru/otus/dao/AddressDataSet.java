@@ -48,7 +48,6 @@ class AddressDataSet {
         return "AddressDataSet{" +
                 "id=" + id +
                 ", street='" + street +
-//                ", owner=" + owner +
                 '}';
     }
 }
