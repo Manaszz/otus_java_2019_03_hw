@@ -73,12 +73,12 @@ public class DbServiceHiber implements DBService {
 
             T record = session.get(clazz, id);
             System.out.println("-----------------new object:"+record);
-
+            session.getTransaction().commit();
             return  record;
         }catch (Exception ex) {
             ex.printStackTrace();
             return null;
-//            throw new RuntimeException(ex);
+
         }
     }
 
@@ -97,15 +97,7 @@ public class DbServiceHiber implements DBService {
 
     @Override
     public <T> void createOrUpdate(T objectData) {
-        Class clazz = objectData.getClass();
-        Field idFld =checkId(clazz);
-        T loaded = null;
-        try (Session session = sessionFactory.openSession()) {
-
-            loaded = (T) session.get(clazz, (long) idFld.get(objectData));
-            } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        }
+        T loaded = getObject(objectData);
 
         try (Session session2 = sessionFactory.openSession()) {
         session2.beginTransaction();
@@ -120,6 +112,19 @@ public class DbServiceHiber implements DBService {
             System.out.println("-----------------create/updated user:"+objectData);
         }
 
+    }
+
+    private <T> T getObject(T objectData) {
+        Class clazz = objectData.getClass();
+        Field idFld =checkId(clazz);
+        T loaded = null;
+        try (Session session = sessionFactory.openSession()) {
+
+            loaded = (T) session.get(clazz, (long) idFld.get(objectData));
+            } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+        return loaded;
     }
 
     private Field checkId(Class clazz) {
