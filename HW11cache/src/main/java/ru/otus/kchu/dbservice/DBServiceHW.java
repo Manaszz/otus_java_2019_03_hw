@@ -1,6 +1,7 @@
 package ru.otus.kchu.dbservice;
 
 import org.hibernate.SessionFactory;
+import ru.otus.kchu.cache.CacheEngineSoftImpl;
 import ru.otus.kchu.dao.Account;
 import ru.otus.kchu.dao.AddressDataSet;
 import ru.otus.kchu.dao.Phone;
@@ -26,7 +27,8 @@ public class DBServiceHW {
                 .buildFactory();
 
 //        DBService dbServiceUser = new DbServiceHiber(cfgPath,User.class,Account.class ,AddressDataSet.class , Phone.class);
-        DBService dbServiceUser = new DbServiceHiber(sessionFactory);
+//        DBService dbServiceUser = new DbServiceHiber(sessionFactory);
+        DBService dbServiceUser = new DbServiceHiber(sessionFactory,  new CacheEngineSoftImpl<>(10, 1000, 0, false));
 
         User usr1 = new User(10,"User10", 30);
 
@@ -78,6 +80,8 @@ public class DBServiceHW {
 
         dbServiceUser.createOrUpdate(new Account(2,"Account2", 10));
         System.out.println("Load:"+dbServiceUser.load(2,acc1.getClass()));
+
+        ((DbServiceHiber) dbServiceUser).cacheDispose();
 
     }
 
