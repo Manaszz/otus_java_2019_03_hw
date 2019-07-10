@@ -62,10 +62,7 @@ public class CacheEngineSoftImpl<K, V> implements CacheEngine<K, V> {
                 element.setAccessed();
             } else {
                 miss++;
-<<<<<<< HEAD
                 elements.remove(key);
-=======
->>>>>>> origin/HW11cache
             }
          } else {
         element =null;
