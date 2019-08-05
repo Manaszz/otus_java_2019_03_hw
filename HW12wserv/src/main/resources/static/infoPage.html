@@ -1,0 +1,44 @@
+<html xmlns="http://www.w3.org/1999/xhtml" content="text/html;">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Info Page</title>
+    <script type="text/JavaScript">
+        function getDataFromServer() {
+            fetch('http://localhost:8080/AdmData/list')
+                .then(response => response.json())
+                // .then(json =>  console.log(json))
+                .then(json => createElement( json))
+                // .then(function (dataSrv) {
+                //     document.getElementById("dataHolder").innerHTML = dataSrv;
+                // })
+
+        }
+
+        function createElement(arr)
+        {
+            const tab  = document.getElementById("usrTable")
+
+                arr.forEach(function(item){
+                    let row = document.createElement('tr');
+                    row.classList.add('goods__item');
+                    row.innerHTML =`
+                       <td> ${item.name}</td>
+                       <td> ${item.password}</td>
+                       <td> ${item.role}</td>
+                            `;
+
+                    tab.appendChild(row);
+                }
+            );
+        }
+    </script>
+</head>
+<body onload="getDataFromServer();">
+<h1>Info Page</h1>
+<div id="dataHolder"></div>
+<table id ="usrTable" border="1" style="border: black; border-style: solid">
+    <tr><td ><B>User</B></td><td ><B>password</B></td><td ><B>role</B></td></tr>
+</table>
+<a href="/adm"> в админку</a>
+</body>
+</html>
