@@ -4,7 +4,7 @@
     <title>Info Page</title>
     <script type="text/JavaScript">
         function getDataFromServer() {
-            fetch('http://localhost:8080/AdmData/list')
+            fetch('http://localhost:8080/admdata/list')
                 .then(response => response.json())
                 // .then(json =>  console.log(json))
                 .then(json => createElement( json))

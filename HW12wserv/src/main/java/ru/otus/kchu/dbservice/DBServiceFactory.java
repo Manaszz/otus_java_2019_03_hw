@@ -15,21 +15,26 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class DBServiceMain {
-    public  DBService DataIni(String cfgPath) throws  IllegalAccessException {
+public class DBServiceFactory {
+    private DBService dbServiceUser;
+
+    public DBService createService(String cfgPath, Class... classes) {
+        HiberCfgBuilder hiberCfgBuilder = new HiberCfgBuilder(cfgPath);
+        for(Class c:classes){
+            hiberCfgBuilder.addClass(c);
+        }
+        SessionFactory sessionFactory =  hiberCfgBuilder
+                .buildFactory();
+
+        dbServiceUser = new DbServiceHiber(sessionFactory);
+        return dbServiceUser;
+    }
+
+    public  static void  dataIni(DBService dbServiceUser) throws  IllegalAccessException {
 //        DataSource dataSource = new DataSourceH2();
 //        createTable(dataSource);
 //        DBService dbServiceUser = new DbServiceJdbc(dataSource);
 
-        SessionFactory sessionFactory =  new HiberCfgBuilder(cfgPath)
-                .addClass(User.class)
-                .addClass(Account.class)
-                .addClass(AddressDataSet.class)
-                .addClass(Phone.class)
-                .buildFactory();
-
-//        DBService dbServiceUser = new DbServiceHiber(cfgPath,User.class,Account.class ,AddressDataSet.class , Phone.class);
-        DBService dbServiceUser = new DbServiceHiber(sessionFactory);
 
         User usr1 = new User(10,"User10", 30);
 
@@ -72,8 +77,7 @@ public class DBServiceMain {
         System.out.println("All accs:");
         accList.forEach(e-> System.out.println(e));
 
-        return dbServiceUser;
-
     }
+
 
 }

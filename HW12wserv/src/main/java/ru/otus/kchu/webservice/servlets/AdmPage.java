@@ -3,20 +3,26 @@ package ru.otus.kchu.webservice.servlets;
 import ru.otus.kchu.dbservice.DBService;
 
 import javax.crypto.spec.PSource;
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class AdmPage extends HttpServlet {
     DBService dbService;
     public AdmPage(DBService dbService) {
         this.dbService =dbService;
     }
+    private Map paramMap =new HashMap<>();
 
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
 
         String userName = request.getUserPrincipal().getName();
         String resultAsString = getBodyString(userName,0,"");
@@ -24,10 +30,12 @@ public class AdmPage extends HttpServlet {
         response.setContentType("text/html");
         response.setStatus(HttpServletResponse.SC_OK);
         PrintWriter printWriter = response.getWriter();
+//        runPage(request, response);
         printWriter.print(resultAsString);
         printWriter.flush();
     }
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
+
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
 
         String userName = request.getUserPrincipal().getName();
         String resultAsString = getBodyString(userName,response.getStatus(),(String)request.getAttribute("user") );
@@ -35,8 +43,17 @@ public class AdmPage extends HttpServlet {
         response.setContentType("text/html");
         response.setStatus(HttpServletResponse.SC_OK);
         PrintWriter printWriter = response.getWriter();
+//        runPage(request, response);
         printWriter.print(resultAsString);
         printWriter.flush();
+
+    }
+    private void runPage(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        List<String> users = Arrays.asList("Vaya", "Petya", "Fedya");
+
+        request.setAttribute("users", users); // с помощью атрибутов передаются данные между сервлетами
+
+        request.getRequestDispatcher("/admhome.jsp").forward(request,response);
     }
 
     private String getBodyString(String userName, int src,String usrNew) {
@@ -49,7 +66,7 @@ public class AdmPage extends HttpServlet {
                     "<body>" +
                     "<p> Security info page: " + userName + " </p>"+
                     "<p>Create user:</p>" +
-                    "<form action='/AdmData/create' method=\"POST\">" +
+                    "<form action='/admdata/create' method=\"POST\">" +
                     "    Login: <input type=\"text\" name=\"login\"/> <BR> " +
                     "    Password: <input type=\"password\" name=\"pass\"/><BR>" +
                     "    Role: <input type=\"text\" name=\"role\"/><BR>" +

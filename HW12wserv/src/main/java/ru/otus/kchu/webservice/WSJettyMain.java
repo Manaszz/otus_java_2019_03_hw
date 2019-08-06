@@ -25,14 +25,13 @@ import java.util.List;
 
 public class WSJettyMain {
     private final static int PORT = 8080;
-    private DBService dbServ;
+    private DBService dbService;
 
 public WSJettyMain(DBService dbService) throws Exception {
-        dbServ = dbService;
-        start();
+        this.dbService = dbService;
     }
 
-    private void start() throws Exception {
+    public void start() throws Exception {
         Server server = createServer(PORT);
         server.start();
         server.join();
@@ -42,8 +41,8 @@ public WSJettyMain(DBService dbService) throws Exception {
         ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
 //        context.addServlet(new ServletHolder(new PublicInfo(dbServ)), "/publicInfo");
 //        context.addServlet(new ServletHolder(new PrivateInfo(dbServ)), "/privateInfo");
-        context.addServlet(new ServletHolder(new AdmPage(dbServ)), "/adm");
-        context.addServlet(new ServletHolder(new AdmData(dbServ)), "/AdmData/*");
+        context.addServlet(new ServletHolder(new AdmPage(dbService)), "/adm");
+        context.addServlet(new ServletHolder(new AdmData(dbService)), "/admdata/*");
 
         context.addFilter(new FilterHolder(new SimpleFilter()), "/*", null);
 
@@ -69,30 +68,44 @@ public WSJettyMain(DBService dbService) throws Exception {
         return resourceHandler;
     }
 
-    private SecurityHandler createSecurityHandler(ServletContextHandler context) throws MalformedURLException {
+    private SecurityHandler createSecurityHandler(ServletContextHandler context)  {
         List<ConstraintMapping> mappingList = new ArrayList<>();
-        Constraint constraint = new Constraint();
-        constraint.setName("auth");
-        constraint.setAuthenticate(true);
-        constraint.setRoles(new String[]{"user", "admin"});
-        ConstraintMapping mapping = new ConstraintMapping();
-        mapping.setPathSpec("/*");
-        mapping.setConstraint(constraint);
-        mappingList.add( mapping);
-
-        Constraint constraintAdm = new Constraint();
-        constraintAdm.setName("adm");
-        constraintAdm.setAuthenticate(true);
-        constraintAdm.setRoles(new String[]{"admin"});
-        ConstraintMapping mappingAdm = new ConstraintMapping();
-        mappingAdm.setPathSpec("/adm/*");
-        mappingAdm.setConstraint(constraintAdm);
-        mappingList.add(mappingAdm);
+        mappingList.add( getConstraintMapping("auth", true, new String[]{"user", "admin"},"/*"));
+        mappingList.add( getConstraintMapping("adm", true, new String[]{"admin"},"/adm/*"));
 
         ConstraintSecurityHandler security = new ConstraintSecurityHandler();
         //как декодировать стороку с юзером:паролем https://www.base64decode.org/
         security.setAuthenticator(new BasicAuthenticator());
 
+        URL propFile = null;
+        try {
+            propFile = getPropFile();
+
+            HashLoginService lServ = new HashLoginService("MyRealm", propFile.getPath());
+            lServ.setUserStore( getDBUsersStore());
+    //        security.setLoginService(new HashLoginService("MyRealm", propFile.getPath()));
+            security.setLoginService(lServ);
+            security.setHandler(new HandlerList(context));
+            security.setConstraintMappings(mappingList);
+
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
+        return security;
+    }
+
+    private ConstraintMapping getConstraintMapping(String name,boolean auth,String[] roles, String path) {
+        Constraint constraint = new Constraint();
+        constraint.setName(name);
+        constraint.setAuthenticate(auth);
+        constraint.setRoles(roles);
+        ConstraintMapping mapping = new ConstraintMapping();
+        mapping.setPathSpec(path);
+        mapping.setConstraint(constraint);
+        return mapping;
+    }
+
+    private URL getPropFile() throws MalformedURLException {
         URL propFile = null;
         File realmFile = new File("./realm.properties");
         if (realmFile.exists()) {
@@ -106,25 +119,17 @@ public WSJettyMain(DBService dbService) throws Exception {
         if (propFile == null) {
             throw new RuntimeException("Realm property file not found");
         }
-
-        HashLoginService lServ = new HashLoginService("MyRealm", propFile.getPath());
-        lServ.setUserStore( getDBUsersStore());
-//        security.setLoginService(new HashLoginService("MyRealm", propFile.getPath()));
-        security.setLoginService(lServ);
-        security.setHandler(new HandlerList(context));
-        security.setConstraintMappings(mappingList);
-
-        return security;
+        return propFile;
     }
 
     private UserStore getDBUsersStore() {
         UserStore usrs = new UserStore();
         try {
-            dbServ.create(new User("admin","pass", "admin"));
+            dbService.create(new User("admin","pass", "admin"));
         } catch (IllegalAccessException e) {
             e.printStackTrace();
         }
-        for (User user : dbServ.GetEntities(User.class)) {
+        for (User user : dbService.GetEntities(User.class)) {
                     usrs.addUser(user.getName(), Credential.getCredential(user.getPassword()), new String[] { user.getRole() });
         }
 //        usrs.addUser("admin", Credential.getCredential("pass"), new String[] { "admin" });

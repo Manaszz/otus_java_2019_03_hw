@@ -14,7 +14,7 @@ import java.util.List;
 
 public class AdmData extends HttpServlet {
     private static final Gson gson = new Gson();
-    DBService dbService;
+    private DBService dbService;
 
     public AdmData(DBService dbServ) {
         this.dbService=dbServ;
@@ -33,9 +33,6 @@ public class AdmData extends HttpServlet {
 
         System.out.println("requIest params:" + dataParam);
         switch (dataParam) {
-            case "create":
-                createUser(request, response);
-                break;
             case "list":
                 getUsers(request, response);
                 break;
@@ -62,9 +59,6 @@ public class AdmData extends HttpServlet {
         switch (dataParam) {
             case "create":
                 createUser(request, response);
-                break;
-            case "list":
-                getUsers(request, response);
                 break;
             default:
             response.setContentType("text/html;charset=utf-8");
