@@ -1,5 +1,6 @@
 package ru.otus.kchu.webservice.servlets;
 
+import ru.otus.kchu.PageGenerator;
 import ru.otus.kchu.dbservice.DBService;
 
 import javax.crypto.spec.PSource;
@@ -9,13 +10,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class AdmPage extends HttpServlet {
-    DBService dbService;
+    private  DBService dbService;
     public AdmPage(DBService dbService) {
         this.dbService =dbService;
     }
@@ -25,35 +23,51 @@ public class AdmPage extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
 
         String userName = request.getUserPrincipal().getName();
-        String resultAsString = getBodyString(userName,0,"");
 
         response.setContentType("text/html");
         response.setStatus(HttpServletResponse.SC_OK);
-        PrintWriter printWriter = response.getWriter();
-//        runPage(request, response);
-        printWriter.print(resultAsString);
-        printWriter.flush();
+        runPage( response,userName,0,"");
+//        String resultAsString = getBodyString(userName,0,"");
+//        PrintWriter printWriter = response.getWriter();
+//        printWriter.print(resultAsString);
+//        printWriter.flush();
     }
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
 
         String userName = request.getUserPrincipal().getName();
-        String resultAsString = getBodyString(userName,response.getStatus(),(String)request.getAttribute("user") );
-
+        runPage( response,userName,response.getStatus(),(String)request.getAttribute("user"));
         response.setContentType("text/html");
         response.setStatus(HttpServletResponse.SC_OK);
-        PrintWriter printWriter = response.getWriter();
+//        String resultAsString = getBodyString(userName,response.getStatus(),(String)request.getAttribute("user") );
+//        PrintWriter printWriter = response.getWriter();
 //        runPage(request, response);
-        printWriter.print(resultAsString);
-        printWriter.flush();
+//        printWriter.print(resultAsString);
+//        printWriter.flush();
 
     }
-    private void runPage(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        List<String> users = Arrays.asList("Vaya", "Petya", "Fedya");
+    private void runPage(HttpServletResponse response,String userName, int src,String usrNew ) throws  IOException {
 
-        request.setAttribute("users", users); // с помощью атрибутов передаются данные между сервлетами
+        Map<String, Object> pageVariables = new HashMap<>();
+        pageVariables.put("userName", userName);
+        pageVariables.put("message", ((src==0)?"":((src== HttpServletResponse.SC_OK)?"<B>User "+usrNew+" created! <B>":"Error. Check user data(role?)")));
+        response.getWriter().println(PageGenerator.instance().getPage("admpage.html", pageVariables));
 
-        request.getRequestDispatcher("/admhome.jsp").forward(request,response);
+        response.setContentType("text/html;charset=utf-8");
+        response.setStatus(HttpServletResponse.SC_OK);
+
+
+    }
+
+
+    private static Map<String, Object> createPageVariablesMap(HttpServletRequest request) {
+        Map<String, Object> pageVariables = new HashMap<>();
+        pageVariables.put("method", request.getMethod());
+        pageVariables.put("URL", request.getRequestURL().toString());
+        pageVariables.put("pathInfo",   Optional.ofNullable(request.getPathInfo() ).orElse(""));
+        pageVariables.put("sessionId", request.getSession().getId());
+        pageVariables.put("parameters", request.getParameterMap().toString());
+        return pageVariables;
     }
 
     private String getBodyString(String userName, int src,String usrNew) {
