@@ -32,6 +32,8 @@ public class CacheEngineSoftImpl<K, V> implements CacheEngine<K, V> {
         this.lifeTimeMs = lifeTimeMs > 0 ? lifeTimeMs : 0;
         this.idleTimeMs = idleTimeMs > 0 ? idleTimeMs : 0;
         this.isEternal = lifeTimeMs == 0 && idleTimeMs == 0 || isEternal;
+
+        System.out.println("Cash params:"+ this.maxElements + "," + this.lifeTimeMs+","+this.idleTimeMs  + ","+this.isEternal );
     }
 
     public void put(MyElement<K, V> element) {

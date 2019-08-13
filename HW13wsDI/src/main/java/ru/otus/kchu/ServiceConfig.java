@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import ru.otus.kchu.dao.*;
 import ru.otus.kchu.services.cache.CacheEngine;
@@ -16,6 +17,7 @@ import ru.otus.kchu.services.dbservice.DbServiceHiber;
 import ru.otus.kchu.services.dbservice.HiberCfgBuilder;
 
 @Configuration
+@PropertySource("classpath:realm.properties")
 @ComponentScan
 @EnableWebMvc
 public class ServiceConfig {
@@ -46,7 +48,7 @@ public class ServiceConfig {
 
     @Bean
     @Qualifier("cashIni")
-    public CacheEngine cacheEngine(@Value("10") int maxElements,@Value("1000") long lifeTimeMs,@Value("0") long idleTimeMs, @Value("false")boolean isEternal) {
+    public CacheEngine cacheEngine(@Value("${maxElements}") int maxElements,@Value("${lifeTimeMs}") long lifeTimeMs,@Value("${idleTimeMs}") long idleTimeMs, @Value("${isEternal}")boolean isEternal) {
 //        int maxElements = 10;
 //        long lifeTimeMs =1000;
 //        long idleTimeMs = 0;
