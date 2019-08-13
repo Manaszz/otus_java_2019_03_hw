@@ -1,9 +1,9 @@
-package ru.otus.kchu.repository;
+package ru.otus.kchu.services;
 
 import ru.otus.kchu.dao.User;
 import java.util.List;
 
-public interface UserRepository {
+public interface UserRepositoryService {
 
     List<User> findAll();
 

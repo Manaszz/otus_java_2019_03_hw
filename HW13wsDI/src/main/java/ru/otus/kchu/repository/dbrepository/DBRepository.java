@@ -1,11 +1,11 @@
-package ru.otus.kchu.services.dbservice;
+package ru.otus.kchu.repository.dbrepository;
 
 import org.hibernate.SessionFactory;
 import ru.otus.kchu.services.cache.CacheEngine;
 
 import java.util.List;
 
-public interface DBService {
+public interface DBRepository {
     void init(SessionFactory sessionFactory, CacheEngine cash);
     <T> void create(T objectData) throws IllegalAccessException;
     <T> void update(T objectData);

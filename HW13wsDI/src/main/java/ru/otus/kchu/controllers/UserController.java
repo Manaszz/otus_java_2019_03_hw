@@ -7,16 +7,16 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.view.RedirectView;
 import ru.otus.kchu.dao.User;
-import ru.otus.kchu.repository.UserRepository;
+import ru.otus.kchu.services.UserRepositoryService;
 
 import java.util.List;
 
 @Controller
 public class UserController {
 
-    private final UserRepository repository;
+    private final UserRepositoryService repository;
 
-    public UserController(UserRepository repository) {
+    public UserController(UserRepositoryService repository) {
         this.repository = repository;
     }
 

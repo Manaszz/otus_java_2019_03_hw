@@ -10,10 +10,10 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import ru.otus.kchu.dao.*;
 import ru.otus.kchu.services.cache.CacheEngine;
 import ru.otus.kchu.services.cache.CacheEngineSoftImpl;
-import ru.otus.kchu.services.dbservice.DBService;
-import ru.otus.kchu.services.dbservice.DBServiceFactory;
-import ru.otus.kchu.services.dbservice.DbServiceHiber;
-import ru.otus.kchu.services.dbservice.HiberCfgBuilder;
+import ru.otus.kchu.repository.dbrepository.DBRepository;
+import ru.otus.kchu.repository.dbrepository.DBServiceFactory;
+import ru.otus.kchu.repository.dbrepository.DbRepositoryHiber;
+import ru.otus.kchu.repository.dbrepository.HiberCfgBuilder;
 
 @Configuration
 @ComponentScan
@@ -21,8 +21,8 @@ import ru.otus.kchu.services.dbservice.HiberCfgBuilder;
 public class ServiceConfig {
 
     @Bean
-    public DBService dbService(SessionFactory sessionFactory , @Qualifier("cashIni") CacheEngine cash) throws IllegalAccessException {
-        DBService dbServ = new DbServiceHiber<>();
+    public DBRepository dbRepository(SessionFactory sessionFactory , @Qualifier("cashIni") CacheEngine cash) throws IllegalAccessException {
+        DBRepository dbServ = new DbRepositoryHiber<>();
         dbServ.init(sessionFactory, cash);
         DBServiceFactory.dataIni(dbServ);
         return dbServ;

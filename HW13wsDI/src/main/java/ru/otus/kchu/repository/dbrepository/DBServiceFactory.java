@@ -1,4 +1,4 @@
-package ru.otus.kchu.services.dbservice;
+package ru.otus.kchu.repository.dbrepository;
 
 import org.hibernate.SessionFactory;
 import org.springframework.stereotype.Service;
@@ -14,9 +14,9 @@ import java.util.List;
 
 @Service
 public class DBServiceFactory {
-    private DBService dbServiceUser;
+    private DBRepository dbRepositoryUser;
 
-    public DBService createService(String cfgPath, Class... classes) {
+    public DBRepository createService(String cfgPath, Class... classes) {
         HiberCfgBuilder hiberCfgBuilder = new HiberCfgBuilder(cfgPath);
         for(Class c:classes){
             hiberCfgBuilder.addClass(c);
@@ -24,23 +24,23 @@ public class DBServiceFactory {
         SessionFactory sessionFactory =  hiberCfgBuilder
                 .buildFactory();
 
-        dbServiceUser = new DbServiceHiber(sessionFactory,  new CacheEngineSoftImpl<>(10, 1000, 0, false));
+        dbRepositoryUser = new DbRepositoryHiber(sessionFactory,  new CacheEngineSoftImpl<>(10, 1000, 0, false));
 
-        return dbServiceUser;
+        return dbRepositoryUser;
     }
 
-    public DBService createService(SessionFactory sessionFactory ) {
-        dbServiceUser = new DbServiceHiber(sessionFactory,  new CacheEngineSoftImpl<>(10, 1000, 0, false));
+    public DBRepository createService(SessionFactory sessionFactory ) {
+        dbRepositoryUser = new DbRepositoryHiber(sessionFactory,  new CacheEngineSoftImpl<>(10, 1000, 0, false));
 
-        return dbServiceUser;
+        return dbRepositoryUser;
     }
-    public DBService createService(SessionFactory sessionFactory, CacheEngine cash) {
-        dbServiceUser = new DbServiceHiber(sessionFactory, cash);
+    public DBRepository createService(SessionFactory sessionFactory, CacheEngine cash) {
+        dbRepositoryUser = new DbRepositoryHiber(sessionFactory, cash);
 
-        return dbServiceUser;
+        return dbRepositoryUser;
     }
 
-    public  static void  dataIni(DBService dbServiceUser) throws  IllegalAccessException {
+    public  static void  dataIni(DBRepository dbRepositoryUser) throws  IllegalAccessException {
 //        DataSource dataSource = new DataSourceH2();
 //        createTable(dataSource);
 //        DBService dbServiceUser = new DbServiceJdbc(dataSource);
@@ -52,35 +52,35 @@ public class DBServiceFactory {
         AddressDataSet addr = new AddressDataSet("qwe str.",usr1);
 //       usr1.setPhones(listPhone);
 
-        dbServiceUser.create(usr1);
-        dbServiceUser.create(new User(11,"User11", 30));
-        User usr12 = dbServiceUser.load(usr1.getId(),usr1.getClass());
+        dbRepositoryUser.create(usr1);
+        dbRepositoryUser.create(new User(11,"User11", 30));
+        User usr12 = dbRepositoryUser.load(usr1.getId(),usr1.getClass());
         System.out.println("--------------Loaded:" +usr12);
 
         usr1.setAge(35);
-        dbServiceUser.update(usr1);
+        dbRepositoryUser.update(usr1);
 
-        User usr2 = dbServiceUser.load(usr1.getId(),usr1.getClass());
+        User usr2 = dbRepositoryUser.load(usr1.getId(),usr1.getClass());
 
         usr1.setAge(40);
-        dbServiceUser.createOrUpdate(usr1);
+        dbRepositoryUser.createOrUpdate(usr1);
         User userz = new User(2,"User2", 10);
-        dbServiceUser.createOrUpdate(userz);
+        dbRepositoryUser.createOrUpdate(userz);
         //----------------------
         Account acc1 = new Account(10,"Account10", 30);
-        dbServiceUser.create(acc1);
-        dbServiceUser.create(new Account(11,"Account11", 30));
+        dbRepositoryUser.create(acc1);
+        dbRepositoryUser.create(new Account(11,"Account11", 30));
 
         acc1.setRest(35);
-        dbServiceUser.update(acc1);
+        dbRepositoryUser.update(acc1);
 
         acc1.setRest(40);
-        dbServiceUser.createOrUpdate(acc1);
+        dbRepositoryUser.createOrUpdate(acc1);
 
-        dbServiceUser.createOrUpdate(new Account(2,"Account2", 10));
+        dbRepositoryUser.createOrUpdate(new Account(2,"Account2", 10));
 
-        List userList = dbServiceUser.GetEntities(User.class);
-        List accList = dbServiceUser.GetEntities(Account.class);
+        List userList = dbRepositoryUser.GetEntities(User.class);
+        List accList = dbRepositoryUser.GetEntities(Account.class);
 
         System.out.println("All users:");
         userList.forEach(e-> System.out.println(e));

@@ -1,10 +1,10 @@
-package ru.otus.kchu.services.dbservice;
+package ru.otus.kchu.repository.dbrepository;
 
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Repository;
 import ru.otus.kchu.services.cache.CacheEngine;
 import ru.otus.kchu.services.cache.MyElement;
 
@@ -12,18 +12,18 @@ import javax.persistence.Id;
 import java.lang.reflect.Field;
 import java.util.List;
 
-@Service
-public class DbServiceHiber <K, T>implements DBService {
+@Repository
+public class DbRepositoryHiber<K, T>implements DBRepository {
     int CashSize = 10;
     private  SessionFactory sessionFactory ;
     CacheEngine<Long, MyElement<K, T>> cache ;
 
 
-    public DbServiceHiber() {
+    public DbRepositoryHiber() {
         sessionFactory = null;
     }
 
-    public DbServiceHiber(SessionFactory sessionFactory, CacheEngine cache) {
+    public DbRepositoryHiber(SessionFactory sessionFactory, CacheEngine cache) {
         this.sessionFactory =sessionFactory;
         this.cache = cache;
     }

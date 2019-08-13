@@ -1,24 +1,24 @@
-package ru.otus.kchu.repository;
+package ru.otus.kchu.services;
 
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Service;
 import ru.otus.kchu.dao.User;
-import ru.otus.kchu.services.dbservice.DBService;
+import ru.otus.kchu.repository.dbrepository.DBRepository;
 
 import java.util.List;
 
-@Repository
-public class UserRepositoryImpl implements UserRepository {
-    private final DBService dbService;
+@Service
+public class UserRepositoryServiceImpl implements UserRepositoryService {
+    private final DBRepository dbRepository;
 
-    public UserRepositoryImpl(DBService dbService) {
-        this.dbService = dbService;
+    public UserRepositoryServiceImpl(DBRepository dbRepository) {
+        this.dbRepository = dbRepository;
     }
 
     @Override
     public List<User> findAll()
     {
 
-        return  dbService.GetEntities(User.class);
+        return  dbRepository.GetEntities(User.class);
     }
 
     @Override
@@ -29,7 +29,7 @@ public class UserRepositoryImpl implements UserRepository {
         }
         User newUsr = new User(name,pass, role);
         try {
-            dbService.create(newUsr);
+            dbRepository.create(newUsr);
         } catch (IllegalAccessException e) {
             e.printStackTrace();
         }
