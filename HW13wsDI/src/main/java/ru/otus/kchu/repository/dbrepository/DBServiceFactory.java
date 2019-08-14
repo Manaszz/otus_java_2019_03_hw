@@ -16,7 +16,7 @@ import java.util.List;
 public class DBServiceFactory {
     private DBRepository dbRepositoryUser;
 
-    public DBRepository createService(String cfgPath, Class... classes) {
+    public DBRepository createRepository(String cfgPath, Class... classes) {
         HiberCfgBuilder hiberCfgBuilder = new HiberCfgBuilder(cfgPath);
         for(Class c:classes){
             hiberCfgBuilder.addClass(c);
@@ -29,12 +29,12 @@ public class DBServiceFactory {
         return dbRepositoryUser;
     }
 
-    public DBRepository createService(SessionFactory sessionFactory ) {
+    public DBRepository createRepository(SessionFactory sessionFactory ) {
         dbRepositoryUser = new DbRepositoryHiber(sessionFactory,  new CacheEngineSoftImpl<>(10, 1000, 0, false));
 
         return dbRepositoryUser;
     }
-    public DBRepository createService(SessionFactory sessionFactory, CacheEngine cash) {
+    public DBRepository createRepository(SessionFactory sessionFactory, CacheEngine cash) {
         dbRepositoryUser = new DbRepositoryHiber(sessionFactory, cash);
 
         return dbRepositoryUser;
